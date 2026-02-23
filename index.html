@@ -1,274 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Troubleshooting Steps Ordering Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Troubleshooting Steps — Put Them in Order</title>
   <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111c33;
-      --panel-soft: #17233e;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #60a5fa;
-      --focus: #fbbf24;
-      --ok: #22c55e;
-      --bad: #ef4444;
-      --card: #1d2c4a;
-      --card-hover: #24385f;
-    }
-
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 45%);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 1rem;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
     }
 
     .game {
-      max-width: 1100px;
+      max-width: 980px;
       margin: 0 auto;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      border-radius: 14px;
-      padding: 1rem;
-      position: relative;
-      overflow: hidden;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
     }
 
     h1 {
-      margin: 0 0 0.5rem;
-      font-size: clamp(1.3rem, 2.6vw, 2rem);
-    }
-
-    .subtitle {
-      margin: 0 0 1rem;
-      color: var(--muted);
+      margin-top: 0;
+      font-size: 1.5rem;
     }
 
     .layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 16px;
     }
 
     .panel {
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 12px;
-      background: var(--panel);
-      padding: 0.85rem;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fafafa;
     }
 
     .panel h2 {
-      margin: 0 0 0.25rem;
-      font-size: 1.05rem;
+      margin: 0 0 8px;
+      font-size: 1.1rem;
     }
 
-    .hint {
-      margin: 0 0 0.75rem;
-      color: var(--muted);
+    .panel-note {
+      margin: 0 0 10px;
+      color: #555;
       font-size: 0.95rem;
     }
 
     .slots {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .slot,
-    .choices {
-      border: 2px dashed rgba(148, 163, 184, 0.45);
-      border-radius: 10px;
-      background: var(--panel-soft);
+      gap: 8px;
     }
 
     .slot {
+      border: 2px dashed #b6b6b6;
+      background: #fff;
+      border-radius: 8px;
+      min-height: 48px;
+      padding: 6px;
       display: flex;
       align-items: stretch;
-      gap: 0.6rem;
-      min-height: 48px;
-      padding: 0.45rem;
-      transition: border-color 0.15s ease;
+      gap: 8px;
     }
 
-    .slot-label {
-      width: 2rem;
-      min-width: 2rem;
+    .slot-number {
+      width: 30px;
+      min-width: 30px;
       border-radius: 999px;
-      background: rgba(148, 163, 184, 0.2);
-      color: #cbd5e1;
-      display: grid;
-      place-items: center;
-      font-weight: 700;
+      background: #ececec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #333;
     }
 
     .slot-content {
       flex: 1;
-      min-height: 48px;
       display: flex;
       align-items: center;
+      min-height: 44px;
     }
 
-    .slot.keyboard-target,
-    .choices.keyboard-target {
-      border-color: var(--focus);
-      box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25);
+    .mark {
+      width: 24px;
+      min-width: 24px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1rem;
     }
 
     .slot.correct {
       border-style: solid;
-      border-color: var(--ok);
+      border-color: #2e9b45;
     }
 
     .slot.incorrect {
       border-style: solid;
-      border-color: var(--bad);
-    }
-
-    .mark {
-      align-self: center;
-      min-width: 2rem;
-      font-weight: 800;
-      text-align: center;
+      border-color: #c62828;
     }
 
     .choices {
-      min-height: 300px;
-      padding: 0.6rem;
+      border: 2px dashed #b6b6b6;
+      background: #fff;
+      border-radius: 8px;
+      min-height: 340px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 0.55rem;
+      gap: 8px;
     }
 
     .card {
-      width: 100%;
-      border: 1px solid rgba(191, 219, 254, 0.35);
-      border-radius: 10px;
-      background: linear-gradient(180deg, var(--card), #1b2a45);
-      color: #f8fafc;
-      text-align: left;
-      font-size: 0.96rem;
-      padding: 0.7rem;
+      border: 1px solid #9aa5b1;
+      background: #f3f7fc;
+      border-radius: 8px;
+      padding: 10px;
       min-height: 48px;
+      display: flex;
+      align-items: center;
       cursor: pointer;
       user-select: none;
-      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
     }
 
-    .card:hover { background: var(--card-hover); }
-
     .card.selected {
-      border-color: var(--focus);
-      box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-      transform: translateY(-1px);
+      border: 2px solid #e8a100;
+      background: #fff7dd;
     }
 
     .controls {
+      margin-top: 14px;
       display: flex;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1rem;
     }
 
     button {
-      border: none;
-      border-radius: 10px;
-      padding: 0.7rem 1rem;
-      font-weight: 700;
+      min-height: 44px;
+      border: 1px solid #8d8d8d;
+      background: #ececec;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-weight: bold;
       cursor: pointer;
     }
 
-    .primary { background: #93c5fd; color: #0f172a; }
-    .secondary { background: #cbd5e1; color: #0f172a; }
-
-    .message {
-      margin-top: 0.65rem;
-      min-height: 1.4rem;
-      font-weight: 600;
+    #message {
+      margin-top: 12px;
+      min-height: 24px;
+      font-weight: bold;
     }
 
-    .instructions {
-      margin-top: 1rem;
-      color: #cbd5e1;
-      font-size: 0.93rem;
-      line-height: 1.4;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
-    }
-
-    :focus-visible {
-      outline: 3px solid rgba(251, 191, 36, 0.95);
-      outline-offset: 2px;
-    }
-
-    canvas#confetti {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: none;
-    }
-
-    @media (max-width: 800px) {
+    @media (max-width: 760px) {
       .layout {
         grid-template-columns: 1fr;
       }
-
-      .slots-panel { order: 1; }
-      .choices-panel { order: 2; }
     }
   </style>
 </head>
 <body>
-  <main class="game" aria-describedby="game-instructions">
-    <canvas id="confetti" aria-hidden="true"></canvas>
-
+  <main class="game">
     <h1>Troubleshooting Steps — Put Them in Order</h1>
-    <p class="subtitle">Tap a card to pick it up, then tap a slot to place it. Tap Choices to return a selected card.</p>
 
     <section class="layout">
-      <div class="panel slots-panel">
+      <section class="panel">
         <h2>Slots</h2>
-        <p class="hint">Start at step 1 and end at step 6.</p>
+        <p class="panel-note">Beginning → End</p>
         <div id="slots" class="slots" aria-label="Step slots"></div>
-      </div>
+      </section>
 
-      <div class="panel choices-panel">
+      <section class="panel">
         <h2>Choices</h2>
-        <p class="hint">All cards start here and can always be moved back.</p>
-        <div id="choices" class="choices" tabindex="0" role="list" aria-label="Choices area"></div>
-      </div>
+        <div id="choices" class="choices" aria-label="Choices area"></div>
+      </section>
     </section>
 
     <div class="controls">
-      <button id="checkBtn" class="primary" type="button">Check Answers</button>
-      <button id="resetBtn" class="secondary" type="button">Reset</button>
+      <button id="checkBtn" type="button">Check Answers</button>
+      <button id="resetBtn" type="button">Reset</button>
     </div>
 
-    <p id="message" class="message" aria-live="polite"></p>
-    <p id="game-instructions" class="instructions">
-      Keyboard: Tab to a card then Enter/Space to pick up. Arrow Up/Down chooses slot target. Press C to target Choices. Enter/Space drops, Esc cancels, Backspace/Delete returns a placed card to Choices.
-    </p>
-    <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <div id="message" aria-live="polite"></div>
   </main>
 
   <script>
-    (() => {
-      const steps = [
+    (function () {
+      const stepData = [
         { id: 'step1', text: 'Identify the problem.' },
         { id: 'step2', text: 'Establish a theory of the most likely cause (start with the obvious).' },
         { id: 'step3', text: 'Test the theory to determine the cause.' },
@@ -277,441 +201,240 @@
         { id: 'step6', text: 'Document findings, actions taken, and outcomes.' }
       ];
 
-      const stepMap = new Map(steps.map(s => [s.id, s]));
-      const slotsEl = document.getElementById('slots');
-      const choicesEl = document.getElementById('choices');
-      const checkBtn = document.getElementById('checkBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const messageEl = document.getElementById('message');
-      const liveEl = document.getElementById('live');
-      const confettiCanvas = document.getElementById('confetti');
+      const correctOrder = stepData.map(s => s.id);
 
       let choices = [];
       let slots = new Array(6).fill(null);
       let selectedCardId = null;
-      let keyboardTarget = { type: 'slot', index: 0 };
-      let hasSubmitted = false;
-      let confettiRaf = null;
-      let particles = [];
+      let hasChecked = false;
 
-      function announce(text) {
-        liveEl.textContent = '';
-        requestAnimationFrame(() => { liveEl.textContent = text; });
+      const slotsEl = document.getElementById('slots');
+      const choicesEl = document.getElementById('choices');
+      const messageEl = document.getElementById('message');
+      const checkBtn = document.getElementById('checkBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      function getStepText(id) {
+        const step = stepData.find(s => s.id === id);
+        return step ? step.text : '';
       }
 
-      function shuffle(arr) {
-        const copy = [...arr];
-        for (let i = copy.length - 1; i > 0; i--) {
+      function shuffle(array) {
+        const arr = array.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [copy[i], copy[j]] = [copy[j], copy[i]];
+          const temp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = temp;
         }
-        return copy;
+        return arr;
       }
 
-      function locateCard(cardId) {
-        const slotIndex = slots.findIndex(id => id === cardId);
-        if (slotIndex >= 0) return { type: 'slot', index: slotIndex };
-        return { type: 'choices', index: choices.indexOf(cardId) };
+      function clearChecksAfterMove() {
+        if (hasChecked) {
+          hasChecked = false;
+          messageEl.textContent = 'Answers changed. Check again.';
+        }
       }
 
-      function moveCardToSlot(cardId, slotIndex) {
-        const from = locateCard(cardId);
-        if (from.type === 'choices' && from.index >= 0) {
-          choices.splice(from.index, 1);
-        } else if (from.type === 'slot') {
-          slots[from.index] = null;
-        }
+      function removeCardFromCurrentLocation(cardId) {
+        const inChoice = choices.indexOf(cardId);
+        if (inChoice !== -1) choices.splice(inChoice, 1);
 
-        const occupyingId = slots[slotIndex];
-        if (occupyingId) {
-          slots[slotIndex] = null;
-          if (from.type === 'slot') {
-            slots[from.index] = occupyingId;
+        const slotIndex = slots.indexOf(cardId);
+        if (slotIndex !== -1) slots[slotIndex] = null;
+      }
+
+      function placeCardIntoSlot(cardId, slotIndex) {
+        if (slotIndex < 0 || slotIndex > 5) return;
+
+        clearChecksAfterMove();
+
+        const existing = slots[slotIndex];
+        const fromSlotIndex = slots.indexOf(cardId);
+
+        removeCardFromCurrentLocation(cardId);
+
+        slots[slotIndex] = cardId;
+
+        if (existing && existing !== cardId) {
+          if (fromSlotIndex !== -1 && fromSlotIndex !== slotIndex) {
+            slots[fromSlotIndex] = existing;
           } else {
-            choices.push(occupyingId);
+            choices.push(existing);
           }
         }
 
-        slots[slotIndex] = cardId;
+        selectedCardId = null;
+        render();
       }
 
       function moveCardToChoices(cardId) {
-        const from = locateCard(cardId);
-        if (from.type === 'slot') {
-          slots[from.index] = null;
-        } else if (from.type === 'choices' && from.index >= 0) {
-          return;
-        }
-        choices.push(cardId);
-      }
-
-      function clearFeedback() {
-        for (let i = 0; i < 6; i++) {
-          const slot = document.getElementById(`slot-${i}`);
-          if (!slot) continue;
-          slot.classList.remove('correct', 'incorrect');
-          const mark = slot.querySelector('.mark');
-          if (mark) mark.textContent = '';
-        }
-      }
-
-      function cancelSelection() {
-        if (!selectedCardId) return;
+        clearChecksAfterMove();
+        removeCardFromCurrentLocation(cardId);
+        if (!choices.includes(cardId)) choices.push(cardId);
         selectedCardId = null;
-        keyboardTarget = { type: 'slot', index: 0 };
-        announce('Selection cancelled.');
-      }
-
-      function dropSelectedToTarget() {
-        if (!selectedCardId) return;
-        if (keyboardTarget.type === 'choices') {
-          moveCardToChoices(selectedCardId);
-          announce(`Returned ${stepMap.get(selectedCardId).text} to choices.`);
-        } else {
-          moveCardToSlot(selectedCardId, keyboardTarget.index);
-          announce(`Placed ${stepMap.get(selectedCardId).text} in slot ${keyboardTarget.index + 1}.`);
-        }
-        selectedCardId = null;
-        if (hasSubmitted) {
-          hasSubmitted = false;
-          clearFeedback();
-          messageEl.textContent = 'Answers changed. Press Check Answers to regrade.';
-        }
         render();
       }
 
-      function handlePickToggle(cardId) {
-        if (selectedCardId === cardId) {
-          cancelSelection();
+      function onCardClick(cardId) {
+        if (selectedCardId === null) {
+          selectedCardId = cardId;
+        } else if (selectedCardId === cardId) {
+          selectedCardId = null;
         } else {
           selectedCardId = cardId;
-          const current = locateCard(cardId);
-          keyboardTarget = current.type === 'slot' ? { type: 'slot', index: current.index } : { type: 'slot', index: 0 };
-          announce(`Picked up ${stepMap.get(cardId).text}`);
         }
         render();
-      }
-
-      function updateTargetHighlight() {
-        document.querySelectorAll('.keyboard-target').forEach(el => el.classList.remove('keyboard-target'));
-        if (!selectedCardId) return;
-
-        if (keyboardTarget.type === 'choices') {
-          choicesEl.classList.add('keyboard-target');
-        } else {
-          const slot = document.getElementById(`slot-${keyboardTarget.index}`);
-          if (slot) slot.classList.add('keyboard-target');
-        }
       }
 
       function makeCard(cardId) {
-        const card = document.createElement('button');
-        card.type = 'button';
+        const card = document.createElement('div');
         card.className = 'card';
+        card.textContent = getStepText(cardId);
         card.dataset.cardId = cardId;
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('role', 'listitem');
-        card.textContent = stepMap.get(cardId).text;
+        card.draggable = true;
 
         if (selectedCardId === cardId) {
           card.classList.add('selected');
-          card.setAttribute('aria-pressed', 'true');
-        } else {
-          card.setAttribute('aria-pressed', 'false');
         }
 
-        card.addEventListener('pointerdown', (e) => {
-          if (e.pointerType === 'touch' || e.pointerType === 'pen') {
-            e.preventDefault();
-          }
+        card.addEventListener('click', function (e) {
+          e.stopPropagation();
+          onCardClick(cardId);
         });
 
-        card.addEventListener('click', () => handlePickToggle(cardId));
-
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handlePickToggle(cardId);
-            return;
-          }
-
-          if (!selectedCardId) return;
-
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            cancelSelection();
-            render();
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            keyboardTarget = { type: 'slot', index: Math.max(0, keyboardTarget.type === 'slot' ? keyboardTarget.index - 1 : 5) };
-            updateTargetHighlight();
-            announce(`Target slot ${keyboardTarget.index + 1}.`);
-          } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            keyboardTarget = { type: 'slot', index: Math.min(5, keyboardTarget.type === 'slot' ? keyboardTarget.index + 1 : 0) };
-            updateTargetHighlight();
-            announce(`Target slot ${keyboardTarget.index + 1}.`);
-          } else if (e.key.toLowerCase() === 'c') {
-            e.preventDefault();
-            keyboardTarget = { type: 'choices' };
-            updateTargetHighlight();
-            announce('Target choices.');
-          } else if (e.key === 'Backspace' || e.key === 'Delete') {
-            e.preventDefault();
-            moveCardToChoices(cardId);
-            if (hasSubmitted) {
-              hasSubmitted = false;
-              clearFeedback();
-              messageEl.textContent = 'Answers changed. Press Check Answers to regrade.';
-            }
-            selectedCardId = null;
-            render();
-            announce(`Returned ${stepMap.get(cardId).text} to choices.`);
-          }
+        card.addEventListener('dragstart', function (e) {
+          e.dataTransfer.setData('text/plain', cardId);
+          e.dataTransfer.effectAllowed = 'move';
+          selectedCardId = null;
+          render();
         });
 
         return card;
       }
 
-      function makeSlot(index) {
-        const slot = document.createElement('div');
-        slot.id = `slot-${index}`;
-        slot.className = 'slot';
-        slot.tabIndex = 0;
-        slot.setAttribute('aria-label', `Slot ${index + 1}`);
-
-        const label = document.createElement('div');
-        label.className = 'slot-label';
-        label.textContent = String(index + 1);
-
-        const content = document.createElement('div');
-        content.className = 'slot-content';
-        if (slots[index]) content.appendChild(makeCard(slots[index]));
-
-        const mark = document.createElement('div');
-        mark.className = 'mark';
-
-        slot.append(label, content, mark);
-
-        slot.addEventListener('pointerdown', (e) => {
-          if (e.pointerType === 'touch' || e.pointerType === 'pen') e.preventDefault();
-        });
-
-        slot.addEventListener('click', () => {
-          if (!selectedCardId) return;
-          keyboardTarget = { type: 'slot', index };
-          dropSelectedToTarget();
-        });
-
-        slot.addEventListener('keydown', (e) => {
-          if (!selectedCardId) return;
-
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            keyboardTarget = { type: 'slot', index };
-            dropSelectedToTarget();
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            keyboardTarget = { type: 'slot', index: Math.max(0, index - 1) };
-            updateTargetHighlight();
-            announce(`Target slot ${keyboardTarget.index + 1}.`);
-          } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            keyboardTarget = { type: 'slot', index: Math.min(5, index + 1) };
-            updateTargetHighlight();
-            announce(`Target slot ${keyboardTarget.index + 1}.`);
-          } else if (e.key.toLowerCase() === 'c') {
-            e.preventDefault();
-            keyboardTarget = { type: 'choices' };
-            updateTargetHighlight();
-            announce('Target choices.');
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            cancelSelection();
-            render();
-          }
-        });
-
-        return slot;
-      }
-
-      function gradeAnswers() {
-        hasSubmitted = true;
-        let correctCount = 0;
+      function renderSlots() {
+        slotsEl.innerHTML = '';
 
         for (let i = 0; i < 6; i++) {
-          const slot = document.getElementById(`slot-${i}`);
-          if (!slot) continue;
+          const slot = document.createElement('div');
+          slot.className = 'slot';
+          slot.dataset.slotIndex = String(i);
 
-          slot.classList.remove('correct', 'incorrect');
-          const mark = slot.querySelector('.mark');
-          const expected = steps[i].id;
-          const actual = slots[i];
+          const number = document.createElement('div');
+          number.className = 'slot-number';
+          number.textContent = String(i + 1);
 
-          if (actual === expected) {
-            correctCount++;
-            slot.classList.add('correct');
-            if (mark) mark.textContent = '✓';
-          } else {
-            slot.classList.add('incorrect');
-            if (mark) mark.textContent = '✗';
+          const content = document.createElement('div');
+          content.className = 'slot-content';
+
+          if (slots[i]) {
+            content.appendChild(makeCard(slots[i]));
           }
-        }
 
-        if (correctCount === 6) {
-          messageEl.textContent = 'Excellent! All steps are in the correct order.';
-          announce('All answers correct.');
-          startConfetti();
-        } else {
-          messageEl.textContent = `${correctCount} of 6 correct. Adjust and submit again.`;
-          announce(`${correctCount} of 6 correct.`);
-          stopConfetti();
-        }
-      }
+          const mark = document.createElement('div');
+          mark.className = 'mark';
 
-      function startConfetti() {
-        const ctx = confettiCanvas.getContext('2d');
-        const rect = confettiCanvas.parentElement.getBoundingClientRect();
-        confettiCanvas.width = Math.floor(rect.width * window.devicePixelRatio);
-        confettiCanvas.height = Math.floor(rect.height * window.devicePixelRatio);
-        confettiCanvas.style.width = `${rect.width}px`;
-        confettiCanvas.style.height = `${rect.height}px`;
-        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-        confettiCanvas.style.display = 'block';
-
-        particles = Array.from({ length: 140 }, () => ({
-          x: Math.random() * rect.width,
-          y: -Math.random() * rect.height,
-          r: 3 + Math.random() * 4,
-          vy: 1.4 + Math.random() * 2.6,
-          vx: -1 + Math.random() * 2,
-          a: Math.random() * Math.PI * 2,
-          va: -0.08 + Math.random() * 0.16,
-          color: ['#22c55e', '#60a5fa', '#f59e0b', '#f43f5e', '#eab308'][Math.floor(Math.random() * 5)]
-        }));
-
-        let start = null;
-        function frame(ts) {
-          if (!start) start = ts;
-          const elapsed = ts - start;
-
-          ctx.clearRect(0, 0, rect.width, rect.height);
-          for (const p of particles) {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.a += p.va;
-            if (p.y > rect.height + 30) {
-              p.y = -20;
-              p.x = Math.random() * rect.width;
+          if (hasChecked) {
+            if (slots[i] === correctOrder[i]) {
+              slot.classList.add('correct');
+              mark.textContent = '✓';
+            } else {
+              slot.classList.add('incorrect');
+              mark.textContent = '✗';
             }
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.a);
-            ctx.fillStyle = p.color;
-            ctx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
-            ctx.restore();
           }
 
-          if (elapsed < 4500) {
-            confettiRaf = requestAnimationFrame(frame);
-          } else {
-            stopConfetti();
-          }
+          slot.appendChild(number);
+          slot.appendChild(content);
+          slot.appendChild(mark);
+
+          slot.addEventListener('click', function () {
+            if (selectedCardId) {
+              placeCardIntoSlot(selectedCardId, i);
+            }
+          });
+
+          slot.addEventListener('dragover', function (e) {
+            e.preventDefault();
+          });
+
+          slot.addEventListener('drop', function (e) {
+            e.preventDefault();
+            const cardId = e.dataTransfer.getData('text/plain');
+            if (cardId) placeCardIntoSlot(cardId, i);
+          });
+
+          slotsEl.appendChild(slot);
         }
-
-        cancelAnimationFrame(confettiRaf);
-        confettiRaf = requestAnimationFrame(frame);
       }
 
-      function stopConfetti() {
-        cancelAnimationFrame(confettiRaf);
-        confettiRaf = null;
-        confettiCanvas.style.display = 'none';
+      function renderChoices() {
+        choicesEl.innerHTML = '';
+        choices.forEach(function (cardId) {
+          choicesEl.appendChild(makeCard(cardId));
+        });
       }
 
       function render() {
-        slotsEl.innerHTML = '';
-        for (let i = 0; i < 6; i++) slotsEl.appendChild(makeSlot(i));
-
-        choicesEl.innerHTML = '';
-        choices.forEach(cardId => choicesEl.appendChild(makeCard(cardId)));
-
-        updateTargetHighlight();
-
-        if (!hasSubmitted) {
-          clearFeedback();
-        }
+        renderSlots();
+        renderChoices();
       }
 
-      choicesEl.addEventListener('pointerdown', (e) => {
-        if (e.pointerType === 'touch' || e.pointerType === 'pen') e.preventDefault();
-      });
-
-      choicesEl.addEventListener('click', () => {
-        if (!selectedCardId) return;
-        keyboardTarget = { type: 'choices' };
-        dropSelectedToTarget();
-      });
-
-      choicesEl.addEventListener('keydown', (e) => {
-        if (!selectedCardId) return;
-
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          keyboardTarget = { type: 'choices' };
-          dropSelectedToTarget();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          keyboardTarget = { type: 'slot', index: 5 };
-          updateTargetHighlight();
-          announce('Target slot 6.');
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          keyboardTarget = { type: 'slot', index: 0 };
-          updateTargetHighlight();
-          announce('Target slot 1.');
-        } else if (e.key.toLowerCase() === 'c') {
-          e.preventDefault();
-          keyboardTarget = { type: 'choices' };
-          updateTargetHighlight();
-          announce('Target choices.');
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelSelection();
-          render();
+      choicesEl.addEventListener('click', function () {
+        if (selectedCardId) {
+          moveCardToChoices(selectedCardId);
         }
       });
 
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && selectedCardId) {
-          e.preventDefault();
-          cancelSelection();
-          render();
-        }
+      choicesEl.addEventListener('dragover', function (e) {
+        e.preventDefault();
       });
 
-      checkBtn.addEventListener('click', gradeAnswers);
+      choicesEl.addEventListener('drop', function (e) {
+        e.preventDefault();
+        const cardId = e.dataTransfer.getData('text/plain');
+        if (cardId) moveCardToChoices(cardId);
+      });
 
-      resetBtn.addEventListener('click', () => {
-        hasSubmitted = false;
-        selectedCardId = null;
-        keyboardTarget = { type: 'slot', index: 0 };
-        slots = new Array(6).fill(null);
-        choices = shuffle(steps.map(s => s.id));
-        messageEl.textContent = '';
-        stopConfetti();
+      checkBtn.addEventListener('click', function () {
+        const hasEmpty = slots.some(function (item) { return item === null; });
+
+        if (hasEmpty) {
+          messageEl.textContent = 'Fill all 6 slots before checking.';
+          hasChecked = false;
+          render();
+          return;
+        }
+
+        hasChecked = true;
+
+        let correctCount = 0;
+        for (let i = 0; i < 6; i++) {
+          if (slots[i] === correctOrder[i]) correctCount++;
+        }
+
+        if (correctCount === 6) {
+          messageEl.textContent = 'All 6 correct!';
+        } else {
+          messageEl.textContent = correctCount + '/6 correct. Fix the red ones and check again.';
+        }
+
         render();
-        announce('Reset complete. Choices reshuffled.');
       });
 
-      window.addEventListener('resize', () => {
-        if (hasSubmitted && slots.every((id, i) => id === steps[i].id)) {
-          startConfetti();
-        }
+      resetBtn.addEventListener('click', function () {
+        slots = new Array(6).fill(null);
+        choices = shuffle(correctOrder);
+        selectedCardId = null;
+        hasChecked = false;
+        messageEl.textContent = '';
+        render();
       });
 
       function init() {
-        choices = shuffle(steps.map(s => s.id));
+        choices = shuffle(correctOrder);
         render();
       }
 

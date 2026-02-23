@@ -70,6 +70,11 @@
       gap: 8px;
     }
 
+    .slot.drop-target,
+    .choices.drop-target {
+      border-color: #7f8ea3;
+    }
+
     .slot-number {
       width: 30px;
       min-width: 30px;
@@ -126,8 +131,14 @@
       min-height: 48px;
       display: flex;
       align-items: center;
-      cursor: pointer;
+      cursor: grab;
+      -webkit-user-select: none;
       user-select: none;
+    }
+
+    .card.dragging {
+      cursor: grabbing;
+      opacity: 0.7;
     }
 
     .card.selected {
@@ -207,6 +218,7 @@
       let slots = new Array(6).fill(null);
       let selectedCardId = null;
       let hasChecked = false;
+      let isDragging = false;
 
       const slotsEl = document.getElementById('slots');
       const choicesEl = document.getElementById('choices');
@@ -278,6 +290,8 @@
       }
 
       function onCardClick(cardId) {
+        if (isDragging) return;
+
         if (selectedCardId === null) {
           selectedCardId = cardId;
         } else if (selectedCardId === cardId) {
@@ -288,12 +302,31 @@
         render();
       }
 
+      function onDragStartCard(e, cardId) {
+        isDragging = true;
+        selectedCardId = null;
+        e.dataTransfer.setData('text/plain', cardId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.classList.add('dragging');
+      }
+
+      function onDragEndCard(e) {
+        e.currentTarget.classList.remove('dragging');
+        document.querySelectorAll('.drop-target').forEach(function (el) {
+          el.classList.remove('drop-target');
+        });
+        setTimeout(function () {
+          isDragging = false;
+        }, 0);
+      }
+
       function makeCard(cardId) {
         const card = document.createElement('div');
         card.className = 'card';
         card.textContent = getStepText(cardId);
         card.dataset.cardId = cardId;
         card.draggable = true;
+        card.setAttribute('draggable', 'true');
 
         if (selectedCardId === cardId) {
           card.classList.add('selected');
@@ -305,10 +338,11 @@
         });
 
         card.addEventListener('dragstart', function (e) {
-          e.dataTransfer.setData('text/plain', cardId);
-          e.dataTransfer.effectAllowed = 'move';
-          selectedCardId = null;
-          render();
+          onDragStartCard(e, cardId);
+        });
+
+        card.addEventListener('dragend', function (e) {
+          onDragEndCard(e);
         });
 
         return card;
@@ -351,17 +385,29 @@
           slot.appendChild(mark);
 
           slot.addEventListener('click', function () {
+            if (isDragging) return;
             if (selectedCardId) {
               placeCardIntoSlot(selectedCardId, i);
             }
           });
 
+          slot.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            slot.classList.add('drop-target');
+          });
+
+          slot.addEventListener('dragleave', function () {
+            slot.classList.remove('drop-target');
+          });
+
           slot.addEventListener('dragover', function (e) {
             e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
           });
 
           slot.addEventListener('drop', function (e) {
             e.preventDefault();
+            slot.classList.remove('drop-target');
             const cardId = e.dataTransfer.getData('text/plain');
             if (cardId) placeCardIntoSlot(cardId, i);
           });
@@ -383,17 +429,29 @@
       }
 
       choicesEl.addEventListener('click', function () {
+        if (isDragging) return;
         if (selectedCardId) {
           moveCardToChoices(selectedCardId);
         }
       });
 
+      choicesEl.addEventListener('dragenter', function (e) {
+        e.preventDefault();
+        choicesEl.classList.add('drop-target');
+      });
+
+      choicesEl.addEventListener('dragleave', function () {
+        choicesEl.classList.remove('drop-target');
+      });
+
       choicesEl.addEventListener('dragover', function (e) {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
       });
 
       choicesEl.addEventListener('drop', function (e) {
         e.preventDefault();
+        choicesEl.classList.remove('drop-target');
         const cardId = e.dataTransfer.getData('text/plain');
         if (cardId) moveCardToChoices(cardId);
       });
@@ -429,6 +487,7 @@
         choices = shuffle(correctOrder);
         selectedCardId = null;
         hasChecked = false;
+        isDragging = false;
         messageEl.textContent = '';
         render();
       });

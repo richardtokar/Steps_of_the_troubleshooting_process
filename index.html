@@ -70,8 +70,8 @@
       gap: 8px;
     }
 
-    .slot.drop-target,
-    .choices.drop-target {
+    .slot.drop-hot,
+    .choices.drop-hot {
       border-color: #7f8ea3;
     }
 
@@ -138,7 +138,7 @@
 
     .card.dragging {
       cursor: grabbing;
-      opacity: 0.7;
+      opacity: 0.6;
     }
 
     .card.selected {
@@ -219,6 +219,7 @@
       let selectedCardId = null;
       let hasChecked = false;
       let isDragging = false;
+      let dragCardId = null;
 
       const slotsEl = document.getElementById('slots');
       const choicesEl = document.getElementById('choices');
@@ -245,8 +246,13 @@
       function clearChecksAfterMove() {
         if (hasChecked) {
           hasChecked = false;
-          messageEl.textContent = 'Answers changed. Check again.';
+          clearFeedback();
+          messageEl.textContent = 'Answers changed. Press Check Answers to regrade.';
         }
+      }
+
+      function clearFeedback() {
+        // Feedback state is represented by hasChecked and cleared in render.
       }
 
       function removeCardFromCurrentLocation(cardId) {
@@ -257,7 +263,7 @@
         if (slotIndex !== -1) slots[slotIndex] = null;
       }
 
-      function placeCardIntoSlot(cardId, slotIndex) {
+      function moveCardToSlot(cardId, slotIndex) {
         if (slotIndex < 0 || slotIndex > 5) return;
 
         clearChecksAfterMove();
@@ -304,6 +310,7 @@
 
       function onDragStartCard(e, cardId) {
         isDragging = true;
+        dragCardId = cardId;
         selectedCardId = null;
         e.dataTransfer.setData('text/plain', cardId);
         e.dataTransfer.effectAllowed = 'move';
@@ -312,8 +319,9 @@
 
       function onDragEndCard(e) {
         e.currentTarget.classList.remove('dragging');
-        document.querySelectorAll('.drop-target').forEach(function (el) {
-          el.classList.remove('drop-target');
+        dragCardId = null;
+        document.querySelectorAll('.drop-hot').forEach(function (el) {
+          el.classList.remove('drop-hot');
         });
         setTimeout(function () {
           isDragging = false;
@@ -387,17 +395,17 @@
           slot.addEventListener('click', function () {
             if (isDragging) return;
             if (selectedCardId) {
-              placeCardIntoSlot(selectedCardId, i);
+              moveCardToSlot(selectedCardId, i);
             }
           });
 
           slot.addEventListener('dragenter', function (e) {
             e.preventDefault();
-            slot.classList.add('drop-target');
+            slot.classList.add('drop-hot');
           });
 
           slot.addEventListener('dragleave', function () {
-            slot.classList.remove('drop-target');
+            slot.classList.remove('drop-hot');
           });
 
           slot.addEventListener('dragover', function (e) {
@@ -407,9 +415,10 @@
 
           slot.addEventListener('drop', function (e) {
             e.preventDefault();
-            slot.classList.remove('drop-target');
-            const cardId = e.dataTransfer.getData('text/plain');
-            if (cardId) placeCardIntoSlot(cardId, i);
+            slot.classList.remove('drop-hot');
+            const cardId = e.dataTransfer.getData('text/plain') || dragCardId;
+            if (!cardId) return;
+            moveCardToSlot(cardId, i);
           });
 
           slotsEl.appendChild(slot);
@@ -437,11 +446,11 @@
 
       choicesEl.addEventListener('dragenter', function (e) {
         e.preventDefault();
-        choicesEl.classList.add('drop-target');
+        choicesEl.classList.add('drop-hot');
       });
 
       choicesEl.addEventListener('dragleave', function () {
-        choicesEl.classList.remove('drop-target');
+        choicesEl.classList.remove('drop-hot');
       });
 
       choicesEl.addEventListener('dragover', function (e) {
@@ -451,9 +460,10 @@
 
       choicesEl.addEventListener('drop', function (e) {
         e.preventDefault();
-        choicesEl.classList.remove('drop-target');
-        const cardId = e.dataTransfer.getData('text/plain');
-        if (cardId) moveCardToChoices(cardId);
+        choicesEl.classList.remove('drop-hot');
+        const cardId = e.dataTransfer.getData('text/plain') || dragCardId;
+        if (!cardId) return;
+        moveCardToChoices(cardId);
       });
 
       checkBtn.addEventListener('click', function () {

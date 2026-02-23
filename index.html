@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting Steps — Put Them in Order</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #121a2d;
+      --panel-2: #0f1729;
+      --text: #e9eefc;
+      --muted: #a7b3d1;
+      --accent: #6aa3ff;
+      --accent-2: #3b82f6;
+      --slot: #1a2540;
+      --card: #1f2b4a;
+      --card-hover: #26365d;
+      --ok: #2bd67b;
+      --bad: #ff5c73;
+      --focus: #ffd166;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #131e38 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .game {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.3rem, 2.2vw, 2rem);
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 0.9rem;
+      min-height: 520px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .column-note {
+      margin: 0.35rem 0 0.8rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .begin-end {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: #c9d6f8;
+      margin-bottom: 0.6rem;
+    }
+
+    .slots {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .slot {
+      background: var(--slot);
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 10px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.6rem;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.1s ease;
+      outline: none;
+    }
+
+    .slot-label {
+      width: 1.9rem;
+      min-width: 1.9rem;
+      height: 1.9rem;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      color: #d7e2ff;
+    }
+
+    .slot-content {
+      flex: 1;
+      min-height: 45px;
+      display: flex;
+      align-items: center;
+    }
+
+    .slot.drop-target,
+    .choices.drop-target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(106,163,255,0.18) inset;
+    }
+
+    .slot.keyboard-target,
+    .choices.keyboard-target {
+      border-color: var(--focus) !important;
+      box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.25);
+    }
+
+    .slot:focus-visible,
+    .choices:focus-visible,
+    .card:focus-visible,
+    button:focus-visible {
+      outline: 3px solid rgba(255, 209, 102, 0.9);
+      outline-offset: 2px;
+    }
+
+    .slot.correct {
+      border-style: solid;
+      border-color: var(--ok);
+    }
+
+    .slot.incorrect {
+      border-style: solid;
+      border-color: var(--bad);
+    }
+
+    .mark {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0.1rem 0.35rem;
+      border-radius: 999px;
+      display: none;
+    }
+
+    .slot.correct .mark,
+    .slot.incorrect .mark {
+      display: inline-block;
+    }
+
+    .slot.correct .mark { background: rgba(43,214,123,0.2); color: #7ff0b4; }
+    .slot.incorrect .mark { background: rgba(255,92,115,0.2); color: #ffc0cb; }
+
+    .choices {
+      background: var(--panel-2);
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 0.55rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      min-height: 420px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--card), #1a2643);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #f2f6ff;
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+      outline: none;
+    }
+
+    .card:hover { background: var(--card-hover); transform: translateY(-1px); }
+    .card:active { cursor: grabbing; }
+
+    .card.selected {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.25);
+    }
+
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #0c1530;
+      background: linear-gradient(180deg, #9bc0ff, #6aa3ff);
+      box-shadow: var(--shadow);
+    }
+
+    button:hover { filter: brightness(1.08); }
+
+    .secondary {
+      background: linear-gradient(180deg, #d5def6, #a7b3d1);
+    }
+
+    .message {
+      min-height: 1.7rem;
+      margin-top: 0.4rem;
+      font-weight: 600;
+      color: #dce6ff;
+    }
+
+    .howto {
+      margin-top: 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0.7rem;
+    }
+
+    .howto h3 { margin: 0 0 0.45rem; font-size: 1rem; }
+    .howto ul { margin: 0.3rem 0 0; padding-left: 1.2rem; color: #c8d4f4; }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    #confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { min-height: auto; }
+      .choices { min-height: 240px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game" aria-describedby="instructions">
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <h1>Troubleshooting Steps — Put Them in Order</h1>
+    <p class="subtitle">Drag, tap, or use keyboard controls to place the troubleshooting process from Beginning to End.</p>
+
+    <section class="layout">
+      <div class="panel" aria-label="Ordering slots">
+        <div class="begin-end"><span>Beginning</span><span>End</span></div>
+        <div id="slots" class="slots"></div>
+      </div>
+
+      <div class="panel" aria-label="Choices panel">
+        <h2>Choices</h2>
+        <p class="column-note">Cards appear in randomized order.</p>
+        <div id="choices" class="choices" tabindex="0" aria-label="Choices drop area"></div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button id="checkBtn" type="button">Check Answers</button>
+      <button id="resetBtn" class="secondary" type="button">Reset</button>
+    </div>
+
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+
+    <section id="instructions" class="howto">
+      <h3>How to play</h3>
+      <ul>
+        <li>Drag a card to a numbered slot. Drop onto an occupied slot to swap cards.</li>
+        <li>Drag a placed card back to the <strong>Choices</strong> area any time.</li>
+        <li>Touch/click fallback: tap a card to select it, then tap a slot or the Choices area to place/return it.</li>
+        <li>Keyboard: focus a card and press <kbd>Enter</kbd> or <kbd>Space</kbd> to pick up.</li>
+        <li>While holding a card: <kbd>↑</kbd>/<kbd>↓</kbd> target slots, <kbd>C</kbd> targets Choices, <kbd>Enter</kbd>/<kbd>Space</kbd> drops, <kbd>Esc</kbd> cancels.</li>
+        <li>While focused on a placed card, press <kbd>Backspace</kbd> or <kbd>Delete</kbd> to return it to Choices.</li>
+      </ul>
+    </section>
+
+    <div id="live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+  </main>
+
+  <script>
+    (() => {
+      const steps = [
+        { id: 'step1', text: 'Identify the problem.' },
+        { id: 'step2', text: 'Establish a theory of the most likely cause (start with the obvious).' },
+        { id: 'step3', text: 'Test the theory to determine the cause.' },
+        { id: 'step4', text: 'Establish a plan to fix the problem and carry out the solution.' },
+        { id: 'step5', text: 'Verify full system functionality and, if appropriate, implement preventive measures.' },
+        { id: 'step6', text: 'Document findings, actions taken, and outcomes.' }
+      ];
+
+      const correctOrder = steps.map(s => s.id);
+
+      let choices = [];
+      let slots = new Array(6).fill(null);
+      let hasSubmitted = false;
+      let selectedCardId = null;
+      let keyboardTarget = { type: 'slot', index: 0 };
+
+      const slotsEl = document.getElementById('slots');
+      const choicesEl = document.getElementById('choices');
+      const checkBtn = document.getElementById('checkBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const messageEl = document.getElementById('message');
+      const liveEl = document.getElementById('live');
+      const confettiCanvas = document.getElementById('confetti');
+
+      let confettiTimer = null;
+      let confettiFrame = null;
+
+      function announce(text) {
+        liveEl.textContent = '';
+        requestAnimationFrame(() => { liveEl.textContent = text; });
+      }
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function getStepById(id) {
+        return steps.find(s => s.id === id);
+      }
+
+      function locationOfCard(cardId) {
+        const slotIndex = slots.indexOf(cardId);
+        if (slotIndex !== -1) return { type: 'slot', index: slotIndex };
+        if (choices.includes(cardId)) return { type: 'choices' };
+        return null;
+      }
+
+      function moveCardToSlot(cardId, slotIndex) {
+        const current = locationOfCard(cardId);
+        const targetCard = slots[slotIndex];
+
+        if (current && current.type === 'slot' && current.index === slotIndex) return;
+
+        if (current && current.type === 'slot') {
+          slots[current.index] = null;
+        } else {
+          choices = choices.filter(id => id !== cardId);
+        }
+
+        if (targetCard && targetCard !== cardId) {
+          if (current && current.type === 'slot') {
+            slots[current.index] = targetCard;
+          } else {
+            choices.push(targetCard);
+          }
+        }
+
+        slots[slotIndex] = cardId;
+      }
+
+      function moveCardToChoices(cardId) {
+        const current = locationOfCard(cardId);
+        if (!current || current.type === 'choices') return;
+        slots[current.index] = null;
+        if (!choices.includes(cardId)) choices.push(cardId);
+      }
+
+      function selectedTargetClass() {
+        document.querySelectorAll('.slot.keyboard-target, .choices.keyboard-target').forEach(el => {
+          el.classList.remove('keyboard-target');
+        });
+        if (!selectedCardId) return;
+        if (keyboardTarget.type === 'choices') {
+          choicesEl.classList.add('keyboard-target');
+        } else {
+          const targetSlot = document.querySelector(`.slot[data-index="${keyboardTarget.index}"]`);
+          if (targetSlot) targetSlot.classList.add('keyboard-target');
+        }
+      }
+
+      function clearSubmitFeedback() {
+        document.querySelectorAll('.slot').forEach(slot => {
+          slot.classList.remove('correct', 'incorrect');
+          const mark = slot.querySelector('.mark');
+          if (mark) {
+            mark.textContent = '';
+            mark.setAttribute('aria-label', '');
+          }
+        });
+      }
+
+      function cancelSelection(announceMsg = true) {
+        selectedCardId = null;
+        keyboardTarget = { type: 'slot', index: 0 };
+        document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
+        selectedTargetClass();
+        if (announceMsg) announce('Selection cancelled.');
+      }
+
+      function handleSelectCard(cardId) {
+        if (selectedCardId === cardId) {
+          cancelSelection(false);
+          announce('Card unselected.');
+          render();
+          return;
+        }
+        selectedCardId = cardId;
+        const current = locationOfCard(cardId);
+        keyboardTarget = current && current.type === 'slot'
+          ? { type: 'slot', index: current.index }
+          : { type: 'slot', index: 0 };
+        announce(`Picked up: ${getStepById(cardId).text}`);
+        render();
+      }
+
+      function performDrop() {
+        if (!selectedCardId) return;
+        if (keyboardTarget.type === 'choices') {
+          moveCardToChoices(selectedCardId);
+          announce('Returned to choices.');
+        } else {
+          moveCardToSlot(selectedCardId, keyboardTarget.index);
+          announce(`Placed in slot ${keyboardTarget.index + 1}.`);
+        }
+        selectedCardId = null;
+        render();
+      }
+
+      function onCheckAnswers() {
+        if (slots.some(s => s === null)) {
+          messageEl.textContent = 'Fill all 6 slots before checking.';
+          announce('Fill all 6 slots before checking.');
+          return;
+        }
+
+        hasSubmitted = true;
+        let correctCount = 0;
+        slots.forEach((id, index) => {
+          const slotEl = document.querySelector(`.slot[data-index="${index}"]`);
+          const markEl = slotEl.querySelector('.mark');
+          const isCorrect = id === correctOrder[index];
+          slotEl.classList.toggle('correct', isCorrect);
+          slotEl.classList.toggle('incorrect', !isCorrect);
+          markEl.textContent = isCorrect ? '✓' : '✗';
+          markEl.setAttribute('aria-label', isCorrect ? 'Correct' : 'Incorrect');
+          if (isCorrect) correctCount++;
+        });
+
+        if (correctCount === 6) {
+          messageEl.textContent = 'All 6 correct!';
+          announce('All 6 correct! Celebration started.');
+          startConfetti();
+        } else {
+          stopConfetti();
+          messageEl.textContent = `${correctCount}/6 correct. Adjust the incorrect ones and submit again.`;
+          announce(`${correctCount} out of 6 correct. Adjust and submit again.`);
+        }
+      }
+
+      function startConfetti() {
+        stopConfetti();
+        const ctx = confettiCanvas.getContext('2d');
+        const rect = confettiCanvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        confettiCanvas.width = rect.width * dpr;
+        confettiCanvas.height = rect.height * dpr;
+        confettiCanvas.style.width = `${rect.width}px`;
+        confettiCanvas.style.height = `${rect.height}px`;
+        ctx.scale(dpr, dpr);
+        confettiCanvas.style.display = 'block';
+
+        const colors = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f8f9fa', '#8338ec'];
+        const pieces = Array.from({ length: 180 }, () => ({
+          x: Math.random() * rect.width,
+          y: -20 - Math.random() * rect.height * 0.5,
+          w: 5 + Math.random() * 8,
+          h: 6 + Math.random() * 10,
+          vx: -2 + Math.random() * 4,
+          vy: 2 + Math.random() * 4,
+          rot: Math.random() * Math.PI * 2,
+          vr: -0.2 + Math.random() * 0.4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          life: 120 + Math.random() * 60
+        }));
+
+        const start = performance.now();
+        function tick(now) {
+          const elapsed = now - start;
+          ctx.clearRect(0, 0, rect.width, rect.height);
+          pieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.03;
+            p.rot += p.vr;
+            p.life -= 1;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+
+            if (p.y > rect.height + 30 || p.x < -30 || p.x > rect.width + 30 || p.life <= 0) {
+              p.x = Math.random() * rect.width;
+              p.y = -20 - Math.random() * 50;
+              p.vx = -2 + Math.random() * 4;
+              p.vy = 2 + Math.random() * 3;
+              p.life = 120 + Math.random() * 60;
+            }
+          });
+
+          if (elapsed < 2600) {
+            confettiFrame = requestAnimationFrame(tick);
+          } else {
+            stopConfetti();
+          }
+        }
+
+        confettiFrame = requestAnimationFrame(tick);
+        confettiTimer = setTimeout(stopConfetti, 2800);
+      }
+
+      function stopConfetti() {
+        if (confettiFrame) cancelAnimationFrame(confettiFrame);
+        if (confettiTimer) clearTimeout(confettiTimer);
+        confettiFrame = null;
+        confettiTimer = null;
+        const ctx = confettiCanvas.getContext('2d');
+        if (ctx) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+        confettiCanvas.style.display = 'none';
+      }
+
+      function makeCard(cardId) {
+        const step = getStepById(cardId);
+        const card = document.createElement('div');
+        card.className = 'card';
+        if (selectedCardId === cardId) card.classList.add('selected');
+        card.setAttribute('draggable', 'true');
+        card.tabIndex = 0;
+        card.dataset.cardId = cardId;
+        card.textContent = step.text;
+
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', cardId);
+          e.dataTransfer.effectAllowed = 'move';
+          announce(`Dragging: ${step.text}`);
+        });
+
+        card.addEventListener('click', () => {
+          handleSelectCard(cardId);
+        });
+
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (!selectedCardId) {
+              handleSelectCard(cardId);
+            } else {
+              performDrop();
+            }
+          } else if ((e.key === 'Backspace' || e.key === 'Delete') && locationOfCard(cardId)?.type === 'slot') {
+            e.preventDefault();
+            moveCardToChoices(cardId);
+            if (selectedCardId === cardId) selectedCardId = null;
+            announce('Returned to choices.');
+            render();
+          }
+        });
+
+        return card;
+      }
+
+      function makeSlot(index) {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.dataset.index = index;
+        slot.tabIndex = 0;
+        slot.setAttribute('aria-label', `Slot ${index + 1}`);
+
+        const label = document.createElement('span');
+        label.className = 'slot-label';
+        label.textContent = String(index + 1);
+
+        const content = document.createElement('div');
+        content.className = 'slot-content';
+
+        const mark = document.createElement('span');
+        mark.className = 'mark';
+        mark.setAttribute('aria-hidden', 'false');
+
+        const cardId = slots[index];
+        if (cardId) content.appendChild(makeCard(cardId));
+
+        slot.append(label, content, mark);
+
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          slot.classList.add('drop-target');
+        });
+
+        slot.addEventListener('dragleave', () => slot.classList.remove('drop-target'));
+
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('drop-target');
+          const cardIdDropped = e.dataTransfer.getData('text/plain');
+          if (!cardIdDropped) return;
+          moveCardToSlot(cardIdDropped, index);
+          if (hasSubmitted) clearSubmitFeedback();
+          render();
+          announce(`Placed in slot ${index + 1}.`);
+        });
+
+        slot.addEventListener('click', () => {
+          if (!selectedCardId) return;
+          keyboardTarget = { type: 'slot', index };
+          performDrop();
+        });
+
+        slot.addEventListener('keydown', (e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && selectedCardId) {
+            e.preventDefault();
+            keyboardTarget = { type: 'slot', index };
+            performDrop();
+          } else if (e.key === 'ArrowUp' && selectedCardId) {
+            e.preventDefault();
+            keyboardTarget = { type: 'slot', index: Math.max(0, keyboardTarget.index - 1) };
+            selectedTargetClass();
+            announce(`Target slot ${keyboardTarget.index + 1}.`);
+          } else if (e.key === 'ArrowDown' && selectedCardId) {
+            e.preventDefault();
+            keyboardTarget = { type: 'slot', index: Math.min(5, keyboardTarget.index + 1) };
+            selectedTargetClass();
+            announce(`Target slot ${keyboardTarget.index + 1}.`);
+          } else if ((e.key === 'c' || e.key === 'C') && selectedCardId) {
+            e.preventDefault();
+            keyboardTarget = { type: 'choices' };
+            selectedTargetClass();
+            announce('Target: Choices.');
+          } else if (e.key === 'Escape' && selectedCardId) {
+            e.preventDefault();
+            cancelSelection();
+            render();
+          }
+        });
+
+        return slot;
+      }
+
+      function render() {
+        slotsEl.innerHTML = '';
+        for (let i = 0; i < 6; i++) slotsEl.appendChild(makeSlot(i));
+
+        choicesEl.innerHTML = '';
+        choices.forEach(id => choicesEl.appendChild(makeCard(id)));
+
+        selectedTargetClass();
+
+        if (!hasSubmitted) {
+          clearSubmitFeedback();
+        }
+      }
+
+      choicesEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        choicesEl.classList.add('drop-target');
+      });
+
+      choicesEl.addEventListener('dragleave', () => choicesEl.classList.remove('drop-target'));
+
+      choicesEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        choicesEl.classList.remove('drop-target');
+        const cardId = e.dataTransfer.getData('text/plain');
+        if (!cardId) return;
+        moveCardToChoices(cardId);
+        if (hasSubmitted) clearSubmitFeedback();
+        render();
+        announce('Returned to choices.');
+      });
+
+      choicesEl.addEventListener('click', () => {
+        if (!selectedCardId) return;
+        keyboardTarget = { type: 'choices' };
+        performDrop();
+      });
+
+      choicesEl.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && selectedCardId) {
+          e.preventDefault();
+          keyboardTarget = { type: 'choices' };
+          performDrop();
+        } else if (e.key === 'ArrowUp' && selectedCardId) {
+          e.preventDefault();
+          if (keyboardTarget.type === 'slot') {
+            keyboardTarget = { type: 'slot', index: Math.max(0, keyboardTarget.index - 1) };
+            selectedTargetClass();
+            announce(`Target slot ${keyboardTarget.index + 1}.`);
+          }
+        } else if (e.key === 'ArrowDown' && selectedCardId) {
+          e.preventDefault();
+          if (keyboardTarget.type === 'choices') keyboardTarget = { type: 'slot', index: 0 };
+          else keyboardTarget = { type: 'slot', index: Math.min(5, keyboardTarget.index + 1) };
+          selectedTargetClass();
+          announce(`Target slot ${keyboardTarget.index + 1}.`);
+        } else if ((e.key === 'c' || e.key === 'C') && selectedCardId) {
+          e.preventDefault();
+          keyboardTarget = { type: 'choices' };
+          selectedTargetClass();
+          announce('Target: Choices.');
+        } else if (e.key === 'Escape' && selectedCardId) {
+          e.preventDefault();
+          cancelSelection();
+          render();
+        }
+      });
+
+      checkBtn.addEventListener('click', onCheckAnswers);
+
+      resetBtn.addEventListener('click', () => {
+        hasSubmitted = false;
+        selectedCardId = null;
+        keyboardTarget = { type: 'slot', index: 0 };
+        slots = new Array(6).fill(null);
+        choices = shuffle(steps.map(s => s.id));
+        messageEl.textContent = '';
+        stopConfetti();
+        clearSubmitFeedback();
+        render();
+        announce('Game reset. Choices reshuffled.');
+      });
+
+      window.addEventListener('resize', () => {
+        if (confettiCanvas.style.display === 'block') {
+          startConfetti();
+        }
+      });
+
+      function init() {
+        hasSubmitted = false;
+        selectedCardId = null;
+        keyboardTarget = { type: 'slot', index: 0 };
+        slots = new Array(6).fill(null);
+        choices = shuffle(steps.map(s => s.id));
+        messageEl.textContent = '';
+        stopConfetti();
+        render();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
